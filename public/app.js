@@ -463,12 +463,15 @@ function hit(e) {
 }
 /* zoom: false quando a escolha veio do teclado (Esc), que nunca anima */
 function pick(h, zoom = true) {
+  const had = selected || selectedArea || coreOpen;
   selected = null; selectedArea = null; coreOpen = false;
   if (h === "__core") coreOpen = true;
   else if (h && h.startsWith("area:")) selectedArea = h.slice(5);
   else selected = h;
   swaySpeed = 0; showTab("node"); renderPanel(true, zoom);
-  if (!zoom || !h) return;
+  // saiu de um ícone (clique no vazio ou Esc): o mapa volta ao cérebro inteiro
+  if (!h) { if (had) resetView(zoom ? 400 : 0); return; }
+  if (!zoom) return;
   if (h === "__core") focusOn(corePos, "core");
   else if (selectedArea) focusOn(areaPos.get(selectedArea), "area");
   else centerOn(h);
@@ -601,12 +604,12 @@ function renderPanel(force, animate = force) {
   del.onclick = async () => {
     if (!del.dataset.armed) { del.dataset.armed = "1"; del.textContent = "Clique de novo para apagar"; setTimeout(() => { if (del.isConnected) { del.textContent = "Apagar"; delete del.dataset.armed; } }, 3000); return; }
     await api("nodes/" + n.id, { method: "DELETE" }).catch(() => toast("Não consegui apagar."));
-    selected = null; await load();
+    selected = null; resetView(); await load();
   };
   const askBtn = el("button", { className: "ghost", textContent: "Perguntar ao Claude", type: "button" });
   askBtn.onclick = () => { showTab("claude"); const a = $("#ask"); a.value = `Sobre "${n.title}" (id ${n.id}): `; a.focus(); };
   const close = el("button", { className: "ghost", textContent: "Fechar", type: "button" });
-  close.onclick = () => { selected = null; renderPanel(true); };
+  close.onclick = () => { selected = null; renderPanel(true); resetView(); };
   ed.append(eyebrow, title, el("div", { className: "grid2" }, [field("Tipo", fType), field("Status", fStatus)]), field("Área", fArea), dl, field("Notas", fNotes),
     el("div", { className: "field", id: "links-box" }), el("p", { className: "file", textContent: "cerebro/nos/" + n.id + ".md" }),
     el("div", { className: "row-actions" }, [askBtn, del, close, saved]));

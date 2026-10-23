@@ -139,7 +139,7 @@ Digite em **Buscar na rede**. Os nós cujo título, área ou notas contêm o tex
 | Aproximar num ponto | Duplo clique no vazio | — | — |
 | Voltar ao enquadramento inicial | Botão **⌖** | — | `0` |
 | Ir até um nó | Clique no ícone ou num nome do painel | Toque | — |
-| Fechar o nó aberto | **Fechar** no painel | **Fechar** | `Esc` |
+| Fechar o nó aberto (o mapa volta ao cérebro inteiro) | **Fechar** no painel ou clique no vazio | **Fechar** ou toque no vazio | `Esc` |
 
 O cérebro balança devagar enquanto você olha; ele para quando o ponteiro está sobre um ícone ou quando há algo selecionado, para nada fugir do clique. Nomes que não cabem sem cobrir outros ficam escondidos e aparecem ao passar o mouse ou ao aproximar.
 
