@@ -1,0 +1,4 @@
+node_modules
+.env
+# as anotações têm repositório próprio (cortex-cerebro), com backup automático
+cerebro/

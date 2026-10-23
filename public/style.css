@@ -1,0 +1,166 @@
+/* Córtex — órbitas sobre o vazio. Tema escuro único, de propósito. */
+:root {
+  --void: #000000;
+  --bone: #ffffff;
+  --ash: #9a9a9a;
+  --mist: #bdbdbd;
+  --iris: #8052ff;
+  --spark: #ffb829;
+  --verdant: #2fbf9c;
+  --ember: #ff8a2a;
+  --line: rgba(255, 255, 255, .09);
+  --line-2: rgba(255, 255, 255, .16);
+  --field: rgba(255, 255, 255, .04);
+  --danger: #ff5d6c;
+  --font: "Geist", "PPNeueMontreal", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* a mesma curva da câmera do mapa (EASE_OUT em app.js) */
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box }
+html, body { height: 100%; margin: 0 }
+body { background: var(--void); color: var(--bone); font-family: var(--font); font-size: 15px; -webkit-font-smoothing: antialiased }
+button, input, select, textarea { font: inherit; color: inherit }
+:focus-visible { outline: 2px solid var(--iris); outline-offset: 2px }
+[hidden] { display: none !important }
+
+.app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 420px }
+.stage { position: relative; min-width: 0; overflow: hidden; background: var(--void) }
+canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab }
+.zoom { position: absolute; right: max(20px, env(safe-area-inset-right, 0px)); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; border: 1px solid var(--line-2); border-radius: 24px; background: rgba(0,0,0,.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); overflow: hidden }
+.zoom button { width: 40px; height: 40px; background: none; border: 0; color: var(--mist); font-size: 18px; cursor: pointer; line-height: 1 }
+.zoom button + button { border-top: 1px solid var(--line) }
+.zoom button:hover { color: var(--bone); background: var(--field) }
+/* no toque o zoom é de pinça; os botões só ocupariam a borda do cérebro */
+@media (pointer: coarse) and (max-width: 900px) { .zoom { display: none } }
+
+.hud-top { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 16px; padding: 18px max(20px, env(safe-area-inset-left, 0px)) 28px; pointer-events: none; background: linear-gradient(to bottom, rgba(0,0,0,.92) 55%, rgba(0,0,0,0)); z-index: 2 }
+.hud-top > * { pointer-events: auto }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; letter-spacing: .14em }
+.hud-right { margin-left: auto; display: flex; gap: 14px; align-items: center }
+.search { background: rgba(0,0,0,.4); border: 0; border-bottom: 1px solid var(--line-2); padding: 8px 4px; width: 200px; font-size: 14px; font-weight: 200 }
+.search::placeholder { color: var(--ash) }
+.pill { background: var(--iris); color: #fff; border: 0; border-radius: 24px; padding: 12px 18px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; white-space: nowrap }
+.pill:hover { filter: brightness(1.12) }
+.pill:disabled { opacity: .45; cursor: default }
+.ghost { background: none; border: 0; color: var(--ash); cursor: pointer; font-size: 13px; padding: 6px 0 }
+.ghost:hover { color: var(--bone) }
+.ghost.danger { color: var(--danger) }
+
+.hero { position: absolute; left: max(20px, env(safe-area-inset-left, 0px)); top: 96px; pointer-events: none; max-width: 300px; display: none }
+@media (min-width: 1720px) { .hero { display: block } }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--spark); margin: 0 0 12px }
+.hero h1 { margin: 0; font-weight: 400; font-size: 44px; line-height: 1; letter-spacing: -.04em; text-wrap: balance }
+.stats { display: flex; gap: 22px; margin: 0 0 0 18px; padding-left: 18px; border-left: 1px solid var(--line-2) }
+.stats div { display: flex; flex-direction: column-reverse; gap: 2px }
+.stats dt { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ash) }
+.stats dd { margin: 0; font-size: 20px; font-weight: 200; font-variant-numeric: tabular-nums; letter-spacing: -.02em; line-height: 1 }
+
+.stage-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none }
+.stage-empty p { margin-top: 160px; max-width: 300px; text-align: center; color: var(--mist); font-weight: 200; line-height: 1.5 }
+
+.capture { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); width: min(560px, calc(100% - 32px)); display: flex; flex-direction: column; gap: 8px }
+.capture-row { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--line-2); border-radius: 24px; padding: 6px 6px 6px 18px }
+.capture input[type=text] { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; font-size: 15px; font-weight: 200; padding: 8px 0 }
+.capture input::placeholder { color: var(--ash) }
+.send { background: var(--bone); color: #000; border: 0; border-radius: 20px; padding: 9px 14px; font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; cursor: pointer }
+.send:disabled { opacity: .4 }
+.toggle { display: flex; align-items: center; gap: 8px; justify-content: center; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ash); cursor: pointer; user-select: none }
+.toggle input { accent-color: var(--spark) }
+
+aside { background: var(--void); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; min-width: 0 }
+.tabs { display: flex; gap: 24px; align-items: center; padding: 20px 24px 0; border-bottom: 1px solid var(--line) }
+.tab { background: none; border: 0; padding: 0 0 14px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ash); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px }
+.tab[aria-selected=true] { color: var(--bone); border-color: var(--iris) }
+.conn { margin-left: auto; margin-bottom: 14px; font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--ash); display: flex; align-items: center; gap: 6px }
+.conn::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ash) }
+.conn.on::before { background: var(--verdant); box-shadow: 0 0 8px var(--verdant) }
+.pane { flex: 1; min-height: 0; overflow: auto; padding: 26px 24px }
+.chat { display: flex; flex-direction: column; padding: 0 }
+
+.muted { color: var(--mist); font-weight: 200; line-height: 1.55; margin: 0 }
+.big { font-size: 30px; line-height: 1.1; letter-spacing: -.04em; font-weight: 400; margin: 0 0 14px; text-wrap: balance }
+.list { list-style: none; margin: 22px 0 0; padding: 0 }
+.list button { width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--line); padding: 14px 0; display: flex; gap: 12px; align-items: baseline; cursor: pointer }
+.list button:hover .lt { color: var(--bone) }
+.list .dot { width: 7px; height: 7px; border-radius: 50%; flex: none }
+.list .lt { flex: 1; min-width: 0; color: var(--mist); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.list .la { font-family: var(--mono); font-size: 10px; color: var(--ash); text-transform: uppercase; letter-spacing: .06em; flex: none }
+
+.editor { display: flex; flex-direction: column; gap: 20px }
+.title-in { width: 100%; background: transparent; border: 0; outline: 0; font-size: 30px; line-height: 1.1; letter-spacing: -.04em; padding: 0; resize: none; overflow: hidden }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0 }
+.field label, .label { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ash) }
+.field input, .field select, .field textarea { background: var(--field); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 14px; width: 100%; min-width: 0 }
+.field textarea { min-height: 200px; resize: vertical; font-weight: 200; line-height: 1.55; font-size: 15px }
+.field select option { background: #111 }
+.file { font-family: var(--mono); font-size: 11px; color: var(--ash); word-break: break-all }
+.chips { display: flex; flex-wrap: wrap; gap: 8px }
+.chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line-2); border-radius: 9999px; padding: 6px 6px 6px 12px; font-size: 13px; max-width: 100% }
+.chip .go { background: none; border: 0; padding: 0; cursor: pointer; color: var(--mist); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 230px }
+.chip .go:hover { color: var(--bone) }
+.chip .x { background: none; border: 0; color: var(--ash); cursor: pointer; width: 20px; height: 20px; border-radius: 50% }
+.chip .x:hover { background: var(--line-2); color: var(--bone) }
+.chip i { width: 7px; height: 7px; border-radius: 50%; flex: none }
+.row-actions { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; border-top: 1px solid var(--line); padding-top: 16px }
+.saved { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--ash); margin-left: auto }
+
+.steps { display: flex; flex-direction: column; gap: 18px; margin-top: 24px }
+.step h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; display: flex; align-items: center; gap: 8px }
+.step h3 i { width: 7px; height: 7px; border-radius: 50% }
+pre.code { margin: 8px 0 0; background: var(--field); border: 1px solid var(--line); border-radius: 12px; padding: 12px; font-family: var(--mono); font-size: 12px; line-height: 1.5; overflow-x: auto; white-space: pre; color: var(--mist) }
+pre.preview { white-space: pre-wrap; max-height: 320px }
+
+.msgs { flex: 1; min-height: 0; overflow: auto; padding: 24px; display: flex; flex-direction: column; gap: 18px }
+.msg { line-height: 1.55; overflow-wrap: anywhere }
+.msg.user { align-self: flex-end; background: rgba(128,82,255,.16); border: 1px solid rgba(128,82,255,.35); border-radius: 18px 18px 4px 18px; padding: 10px 14px; max-width: 88%; white-space: pre-wrap }
+.msg.ai { font-weight: 200 }
+.msg.ai strong, .msg.ai .h { font-weight: 600 }
+.msg.ai .h { display: block; margin: 10px 0 4px }
+.msg.ai p { margin: 0 0 8px }
+.msg.ai ul { margin: 6px 0; padding-left: 18px }
+.msg.ai code { font-family: var(--mono); font-size: 13px; background: var(--field); padding: 1px 5px; border-radius: 5px }
+.msg.think { color: var(--ash); font-family: var(--mono); font-size: 12px; letter-spacing: .04em }
+.act { align-self: flex-start; font-family: var(--mono); font-size: 11px; color: var(--verdant); border: 1px solid rgba(47,191,156,.35); border-radius: 9999px; padding: 4px 10px }
+.err { color: var(--danger); font-size: 13px; line-height: 1.5 }
+.suggest { display: flex; flex-direction: column; gap: 8px }
+.suggest button { text-align: left; background: none; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; color: var(--mist); cursor: pointer; font-weight: 200; font-size: 14px; line-height: 1.4 }
+.suggest button:hover { border-color: var(--line-2); color: var(--bone) }
+.composer { border-top: 1px solid var(--line); padding: 14px 24px calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; gap: 10px; align-items: flex-end }
+.composer textarea { flex: 1; min-width: 0; background: var(--field); border: 1px solid var(--line); border-radius: 16px; padding: 10px 14px; resize: none; min-height: 44px; max-height: 160px; font-size: 15px; font-weight: 200; line-height: 1.45 }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: #111; border: 1px solid var(--line-2); border-radius: 14px; padding: 10px 16px; font-size: 13px; z-index: 20; max-width: calc(100% - 32px) }
+
+/* ---------- movimento ----------
+   Cor no hover em 150ms com ease: só suaviza, não anda. Pressionar encolhe
+   pra 97%. Entradas sobem 6px e aparecem; nada nasce do nada. */
+.zoom button, .ghost, .list .lt, .chip .go, .chip .x, .suggest button, .tab { transition: color .15s ease, background-color .15s ease, border-color .15s ease }
+.pill, .send, .suggest button { transition: filter .15s ease, color .15s ease, border-color .15s ease, transform .16s var(--ease-out) }
+.pill:active:not(:disabled), .send:active:not(:disabled), .suggest button:active { transform: scale(.97) }
+.zoom button:active { background: var(--line-2) }
+
+.toast { transition: opacity .2s var(--ease-out), transform .2s var(--ease-out) }
+.toast.out { opacity: 0; transform: translate(-50%, 8px); transition-duration: .16s }
+@starting-style { .toast { opacity: 0; transform: translate(-50%, 8px) } }
+
+.msg, .act { transition: opacity .2s var(--ease-out), transform .2s var(--ease-out) }
+@starting-style { .msg, .act { opacity: 0; transform: translateY(6px) } }
+
+@media (prefers-reduced-motion: reduce) {
+  /* menos movimento: continua aparecendo aos poucos, mas sem deslocar */
+  .pill:active:not(:disabled), .send:active:not(:disabled), .suggest button:active { transform: none }
+  .toast.out { transform: translateX(-50%) }
+  @starting-style { .toast { transform: translateX(-50%) } .msg, .act { transform: none } }
+}
+
+@media (max-width: 900px) {
+  html, body { height: auto }
+  .app { height: auto; grid-template-columns: minmax(0, 1fr) }
+  .stage { height: min(160vw, 760px); min-height: 560px }
+  .hud-top { flex-wrap: wrap } .stats { order: 3; width: 100%; margin: 4px 0 0; padding: 0; border: 0 }
+  aside { border-left: 0; border-top: 1px solid var(--line); min-height: 75vh }
+  .search { width: 130px }
+  .grid2 { grid-template-columns: 1fr }
+}

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Córtex</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cpolygon points='13,2 24,22 2,22' fill='none' stroke='%238052ff' stroke-width='2.5'/%3E%3Cpolygon points='13,10 18,19 8,19' fill='%23ffb829'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@200;400;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app">
+  <section class="stage" id="stage">
+    <canvas id="cv" aria-label="Mapa orbital da rede de ideias, planos e projetos"></canvas>
+
+    <div class="hud-top">
+      <div class="brand">
+        <svg width="22" height="22" viewBox="0 0 26 26" aria-hidden="true"><polygon points="13,2 24,22 2,22" fill="none" stroke="#8052ff" stroke-width="2.2"/><polygon points="13,10 18,19 8,19" fill="#ffb829"/></svg>
+        <span>CÓRTEX</span>
+      </div>
+      <dl class="stats">
+        <div><dt>Projetos</dt><dd id="c-projeto">0</dd></div>
+        <div><dt>Planos</dt><dd id="c-plano">0</dd></div>
+        <div><dt>Ideias</dt><dd id="c-ideia">0</dd></div>
+        <div><dt>Áreas</dt><dd id="c-area">0</dd></div>
+      </dl>
+      <div class="hud-right">
+        <input id="search" class="search" type="search" placeholder="Buscar na rede" aria-label="Buscar nós">
+        <button id="new-node" class="pill">Novo nó</button>
+      </div>
+    </div>
+
+    <div class="hero" id="hero">
+      <p class="eyebrow">Segundo cérebro · localhost</p>
+      <h1>Tudo que você<br>pensa, ligado.</h1>
+    </div>
+
+    <div class="zoom" role="group" aria-label="Zoom do mapa">
+      <button id="z-in" type="button" aria-label="Aproximar" title="Aproximar (+)">+</button>
+      <button id="z-out" type="button" aria-label="Afastar" title="Afastar (−)">−</button>
+      <button id="z-reset" type="button" aria-label="Centralizar" title="Centralizar (0)">⌖</button>
+    </div>
+
+    <div class="stage-empty" id="stage-empty" hidden><p>Sua rede está vazia. Escreva a primeira ideia abaixo e aperte Enter.</p></div>
+
+    <form class="capture" id="capture">
+      <div class="capture-row">
+        <input id="cap-text" type="text" placeholder="Solte uma ideia e aperte Enter" autocomplete="off" aria-label="Nova ideia">
+        <button class="send" id="cap-send" type="submit">Anexar</button>
+      </div>
+      <label class="toggle" id="cap-toggle-wrap"><input type="checkbox" id="cap-claude" checked> Claude organiza e conecta</label>
+    </form>
+  </section>
+
+  <aside id="aside">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-node" aria-selected="true">Nó</button>
+      <button class="tab" role="tab" id="tab-claude" aria-selected="false">Claude</button>
+      <span class="conn" id="conn" title="Status da conexão com o Claude"></span>
+    </div>
+    <div class="pane" id="pane-node"></div>
+    <div class="pane chat" id="pane-claude" hidden>
+      <div class="msgs" id="msgs"></div>
+      <form class="composer" id="composer">
+        <textarea id="ask" rows="1" placeholder="Pergunte sobre suas ideias, peça um plano…" aria-label="Mensagem para o Claude"></textarea>
+        <button class="pill" id="ask-send" type="submit">Enviar</button>
+      </form>
+    </div>
+  </aside>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script src="/app.js"></script>
+</body>
+</html>
